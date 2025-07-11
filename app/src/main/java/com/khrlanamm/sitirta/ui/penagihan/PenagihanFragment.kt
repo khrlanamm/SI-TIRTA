@@ -1,4 +1,4 @@
-package com.khrlanamm.sitirta.ui.dashboard
+package com.khrlanamm.sitirta.ui.penagihan
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.khrlanamm.sitirta.databinding.FragmentDashboardBinding
 import com.khrlanamm.sitirta.ui.cetak.CetakActivity
 
-class DashboardFragment : Fragment() {
+class PenagihanFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
@@ -21,14 +21,14 @@ class DashboardFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(DashboardViewModel::class.java)
+        val penagihanViewModel =
+            ViewModelProvider(this).get(PenagihanViewModel::class.java)
 
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
+        penagihanViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root
