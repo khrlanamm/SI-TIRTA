@@ -2,7 +2,7 @@
 <resources>
     <color name="navy_tirta">#1E78C1</color>
     <color name="navy_tirta_light">#C6E4FF</color>
-    <color name="navy_tirta_dark">#4A56CC</color>
+    <color name="navy_tirta_dark">#064474</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="background_light">#F0FAFC</color> <color name="text_primary">#212121</color> <color name="text_secondary">#8A8A8A</color> <color name="border_color">#DDE2E5</color> <color name="status_success">#2E7D32</color>

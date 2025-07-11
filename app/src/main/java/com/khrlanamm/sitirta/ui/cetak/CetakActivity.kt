@@ -11,6 +11,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.dantsu.escposprinter.EscPosPrinter
@@ -25,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CetakActivity : ComponentActivity() {
+class CetakActivity : AppCompatActivity() {
 
     private var selectedPrinter: BluetoothConnection? = null
 
@@ -44,6 +46,7 @@ class CetakActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         setContentView(R.layout.activity_cetak)
 
         val selectPrinterButton: Button = findViewById(R.id.button_select_printer)

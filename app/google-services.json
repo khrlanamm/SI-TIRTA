@@ -12,7 +12,20 @@
           "package_name": "com.khrlanamm.sitirta"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "774570754402-faot4vga5b4puq37hr2s5b12t1618rn2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.khrlanamm.sitirta",
+            "certificate_hash": "3c28fa0395fa5f60b52df4d771f53d5fb05ce817"
+          }
+        },
+        {
+          "client_id": "774570754402-snsvj7mavbm9jh86v9j46vkntembrrsu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDPCnw6jxCcGco6Zfu-Y0YxSfBJE6KMSOA"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "774570754402-snsvj7mavbm9jh86v9j46vkntembrrsu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

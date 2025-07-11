@@ -3,4 +3,13 @@
     <string name="title_home">Dashboard</string>
     <string name="title_dashboard">Penagihan</string>
     <string name="title_notifications">Pembukuan</string>
+
+    <!-- Strings for AuthActivity -->
+    <string name="welcome_greeting">Selamat Datang,</string>
+    <string name="app_logo_description">Logo Aplikasi SI-TIRTA</string>
+    <string name="app_full_name">Sistem Informasi Tata Kelola Air\n(SI-TIRTA)</string>
+    <string name="kpspam_name">KPSPAM Sungai Pulai</string>
+    <string name="kkn_info">KKN-PPM UGM Silaut 2025</string>
+    <string name="google_sign_in">Daftar / Masuk dengan Google</string>
+
 </resources>

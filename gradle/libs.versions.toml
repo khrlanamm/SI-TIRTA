@@ -1,6 +1,6 @@
 [versions]
 activityKtx = "1.10.1"
-agp = "8.11.0"
+agp = "8.11.1"
 escposThermalprinterAndroid = "3.4.0"
 firebaseBom = "33.16.0"
 fragmentKtx = "1.8.8"
