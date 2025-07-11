@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.SiTirta" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/navy_tirta</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/navy_tirta_light</item>
+        <item name="colorOnPrimaryContainer">@color/navy_tirta_dark</item>
+
+        <item name="colorSecondary">@color/navy_tirta</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/navy_tirta_light</item>
+        <item name="colorOnSecondaryContainer">@color/navy_tirta_dark</item>
+
+        <item name="colorError">@color/status_error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">#F9DEDC</item>
+        <item name="colorOnErrorContainer">#410E0B</item>
+    </style>
+</resources>

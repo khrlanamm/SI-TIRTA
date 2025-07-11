@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">SiTirta</string>
+    <string name="title_home">Dashboard</string>
+    <string name="title_dashboard">Penagihan</string>
+    <string name="title_notifications">Pembukuan</string>
+</resources>

@@ -1,0 +1,30 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.Tirta" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/navy_tirta</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/navy_tirta_light</item>
+        <item name="colorOnPrimaryContainer">@color/navy_tirta_dark</item>
+
+        <item name="colorSecondary">@color/navy_tirta</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/navy_tirta_light</item>
+        <item name="colorOnSecondaryContainer">@color/navy_tirta_dark</item>
+
+        <item name="colorError">@color/status_error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">#F9DEDC</item>
+        <item name="colorOnErrorContainer">#410E0B</item>
+
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+        <item name="colorSurface">@color/white</item> <item name="colorOnSurface">@color/text_primary</item> <item name="colorSurfaceVariant">@color/background_light</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item> <item name="colorOutline">@color/border_color</item> </style>
+
+    <style name="Theme.Tirta" parent="Base.Theme.Tirta" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/navy_tirta</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/app_logo_scaled</item>
+        <item name="postSplashScreenTheme">@style/Theme.Tirta</item>
+    </style>
+</resources>
