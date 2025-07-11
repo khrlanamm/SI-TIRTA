@@ -24,21 +24,13 @@ class AuthActivity : AppCompatActivity() {
             insets
         }
 
-        // --- TAMBAHKAN KODE INI ---
-
-        // 1. Temukan tombol dari layout menggunakan ID-nya
         val googleSignInButton = findViewById<SignInButton>(R.id.button_google_sign_in)
 
-        // 2. Atur OnClickListener pada tombol
         googleSignInButton.setOnClickListener {
-            // 3. Buat Intent untuk berpindah ke MainActivity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
 
-            // 4. (Opsional) Selesaikan AuthActivity agar pengguna tidak bisa kembali
-            //    ke halaman ini dengan menekan tombol kembali.
             finish()
         }
-        // -------------------------
     }
 }
