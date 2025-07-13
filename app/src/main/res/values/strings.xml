@@ -16,6 +16,6 @@
 
     <!-- Dashboard -->
     <string name="logout">Keluar</string>
-    <string name="account_name">Hi, Nama Pengguna!</string>
+    <string name="account_name">Hai, Nama Pengguna!</string>
 
 </resources>
