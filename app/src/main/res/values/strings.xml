@@ -18,4 +18,12 @@
     <string name="logout">Keluar</string>
     <string name="account_name">Hai, Nama Pengguna!</string>
 
+    <!-- Account -->
+    <string name="action_account">Akun Pengguna</string>
+    <string name="name">Nama</string>
+    <string name="email">Email</string>
+    <string name="user_id">User ID</string>
+    <string name="edit_profile">Ubah Profil</string>
+
+
 </resources>

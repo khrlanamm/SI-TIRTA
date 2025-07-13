@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.khrlanamm.sitirta.ui.auth.AccountActivity
@@ -14,6 +16,9 @@ class DashboardFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
+
+    private var backPressedTime: Long = 0
+    private var backToast: Toast? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,9 +38,9 @@ class DashboardFragment : Fragment() {
 
         setupWelcomeText(userName)
         setupProfilePicture(userPhotoUrl)
-
-        // Memanggil fungsi yang sudah diperbarui
         setupClickListeners()
+
+        setupOnBackPressed()
     }
 
     private fun setupWelcomeText(userName: String?) {
@@ -68,6 +73,24 @@ class DashboardFragment : Fragment() {
         val intent = Intent(activity, AccountActivity::class.java)
         startActivity(intent)
     }
+
+    private fun setupOnBackPressed() {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    backToast?.cancel()
+                    requireActivity().finish()
+                    return
+                } else {
+                    backToast = Toast.makeText(context, "Tekan sekali lagi untuk keluar", Toast.LENGTH_SHORT)
+                    backToast?.show()
+                }
+                backPressedTime = System.currentTimeMillis()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
