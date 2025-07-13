@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.dashboard.DashboardFragment"
+    android:paddingHorizontal="16dp"
     android:background="@color/navy_tirta_light">
 
     <TextView
@@ -34,9 +35,9 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/logoutButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:id="@+id/accountButton"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginEnd="4dp"
         android:contentDescription="@string/logout"
         android:src="@drawable/ic_profile"
