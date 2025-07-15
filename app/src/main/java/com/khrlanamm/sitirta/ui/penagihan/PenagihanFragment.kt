@@ -27,23 +27,16 @@ class PenagihanFragment : Fragment() {
         _binding = FragmentPenagihanBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textPenagihan
-        penagihanViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Akun Saya"
+
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Set listener untuk tombol cetak
-        binding.btnCetak.setOnClickListener {
-            // Buat Intent untuk memulai CetakActivity
-            val intent = Intent(requireActivity(), CetakActivity::class.java)
-            // Jalankan activity
-            startActivity(intent)
-        }
     }
 
     override fun onDestroyView() {

@@ -25,5 +25,12 @@
     <string name="user_id">User ID</string>
     <string name="edit_profile">Ubah Profil</string>
 
-
+    <!-- Penagihan -->
+    <string name="action_penagihan">Penagihan</string>
+    <string-array name="penanggung_jawab_array">
+        <item>Ari Widodo</item>
+        <item>Penanggung Jawab 2</item>
+        <item>Penanggung Jawab 3</item>
+        <item>Penanggung Jawab 4</item>
+    </string-array>
 </resources>
