@@ -29,10 +29,9 @@ class PenagihanViewModel : ViewModel() {
     private val _statistik = MutableLiveData<Map<String, Pair<Int, Int>>>()
     val statistik: LiveData<Map<String, Pair<Int, Int>>> get() = _statistik
 
-    // Filter states
-    private var currentPjPrefix: String? = null
+    private var currentPjPrefix: String? = "Semua"
     private var currentSearchQuery: String = ""
-    private var currentPaymentStatusFilter: String? = null
+    private var currentPaymentStatusFilter: List<String> = listOf("Sudah Bayar", "Belum Bayar")
 
     init {
         fetchDataFromFirestore()
@@ -85,14 +84,16 @@ class PenagihanViewModel : ViewModel() {
         }
 
         // 3. Filter berdasarkan Status Pembayaran
-        currentPaymentStatusFilter?.let { status ->
-            filteredList = filteredList.filter {
-                it.status_pembayaran.equals(status, ignoreCase = true)
+        filteredList = filteredList.filter { pelanggan ->
+            currentPaymentStatusFilter.any { status ->
+                pelanggan.status_pembayaran.equals(status, ignoreCase = true)
             }
         }
 
-        _pelangganList.value = filteredList
-        calculateStatistics(filteredList)
+        val sortedList = filteredList.sortedBy { it.status_penagihan }
+
+        _pelangganList.value = sortedList
+        calculateStatistics(sortedList)
     }
 
     private fun calculateStatistics(list: List<Pelanggan>) {
@@ -132,8 +133,8 @@ class PenagihanViewModel : ViewModel() {
         applyFilters()
     }
 
-    fun setPaymentStatusFilter(status: String?) {
-        currentPaymentStatusFilter = status
+    fun setPaymentStatusFilter(statuses: List<String>) {
+        currentPaymentStatusFilter = statuses
         applyFilters()
     }
 }

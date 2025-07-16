@@ -220,8 +220,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_pencarian_label" />
 
-            <RadioGroup
-                android:id="@+id/rg_status"
+            <LinearLayout
+                android:id="@+id/ll_status_filter"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -229,23 +229,25 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/et_search">
 
-                <RadioButton
-                    android:id="@+id/rb_belum_dibayar"
+                <CheckBox
+                    android:id="@+id/cb_belum_dibayar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_button_selector"
                     android:text="Belum Dibayar"
-                    android:textColor="@color/text_secondary" />
-
-                <RadioButton
-                    android:id="@+id/rb_sudah_dibayar"
+                    android:textColor="@color/text_secondary"
+                    android:checked="true"/>
+                <CheckBox
+                    android:id="@+id/cb_sudah_dibayar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:buttonTint="@color/radio_button_selector"
                     android:text="Sudah Dibayar"
-                    android:textColor="@color/text_secondary" />
-            </RadioGroup>
+                    android:textColor="@color/text_secondary"
+                    android:checked="true"/>
+            </LinearLayout>
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_penagihan"
@@ -257,7 +259,7 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/rg_status"
+                app:layout_constraintTop_toBottomOf="@id/ll_status_filter"
                 tools:itemCount="6"
                 tools:listitem="@layout/item_person" />
 

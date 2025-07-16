@@ -37,10 +37,9 @@ class PenagihanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupToolbar()
-        // setupDropdown() akan dipanggil dari dalam observeViewModel
         setupRecyclerView()
         setupSearch()
-        setupFilterRadioButtons()
+        setupFilterCheckBoxes()
         observeViewModel()
     }
 
@@ -85,29 +84,26 @@ class PenagihanFragment : Fragment() {
         }
     }
 
-    private fun setupFilterRadioButtons() {
-        binding.rgStatus.setOnCheckedChangeListener { group, checkedId ->
-            if (checkedId == lastCheckedRadioButtonId) {
-                group.clearCheck()
-                penagihanViewModel.setPaymentStatusFilter(null)
-                lastCheckedRadioButtonId = -1
-                return@setOnCheckedChangeListener
+    private fun setupFilterCheckBoxes() {
+        val listener = { _: View, _: Boolean ->
+            val statusesToFilter = mutableListOf<String>()
+            if (binding.cbSudahDibayar.isChecked) {
+                statusesToFilter.add("Sudah Bayar")
             }
-
-            lastCheckedRadioButtonId = checkedId
-            when (checkedId) {
-                R.id.rb_sudah_dibayar -> penagihanViewModel.setPaymentStatusFilter("Sudah Bayar")
-                R.id.rb_belum_dibayar -> penagihanViewModel.setPaymentStatusFilter("Belum Bayar")
+            if (binding.cbBelumDibayar.isChecked) {
+                statusesToFilter.add("Belum Bayar")
             }
+            penagihanViewModel.setPaymentStatusFilter(statusesToFilter)
         }
+
+        binding.cbSudahDibayar.setOnCheckedChangeListener(listener)
+        binding.cbBelumDibayar.setOnCheckedChangeListener(listener)
     }
 
     private fun observeViewModel() {
         // Observer baru untuk daftar penanggung jawab
         penagihanViewModel.penanggungJawabList.observe(viewLifecycleOwner) { pjList ->
-            // Ambil daftar nama dari objek PenanggungJawab
             val pjNames = pjList.mapNotNull { it.name }
-            // Panggil setupDropdown dengan daftar nama yang didapat dari Firebase
             setupDropdown(pjNames)
         }
 
