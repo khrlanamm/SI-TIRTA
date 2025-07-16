@@ -7,23 +7,23 @@
     android:background="@color/navy_tirta_light"
     tools:context=".ui.penagihan.PenagihanFragment">
 
-    <!-- Toolbar di bagian atas (sesuai kode sebelumnya) -->
+    <!-- Toolbar di bagian atas -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
         android:background="@color/navy_tirta_light"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/black"
             app:title="@string/action_penagihan"
-            app:titleTextColor="@color/black"
-            app:navigationIconTint="@color/black" />
+            app:titleTextColor="@color/black" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -38,7 +38,11 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="100dp">
+            <!-- PERUBAHAN: Menggunakan padding spesifik dan menambahkan paddingBottom yang lebih besar -->
 
             <!-- Label Penanggung Jawab -->
             <TextView
@@ -224,18 +228,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:autofillHints="name"
                 android:background="@drawable/search_bar_background"
                 android:drawableStart="@drawable/ic_search"
                 android:drawablePadding="12dp"
                 android:hint="Cari.."
+                android:inputType="text"
                 android:padding="16dp"
-                android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_pencarian_label"
-                android:autofillHints="name"
-                android:inputType="text" />
+                app:layout_constraintTop_toBottomOf="@id/tv_pencarian_label" />
 
             <!-- Radio Buttons -->
             <RadioGroup
