@@ -21,8 +21,6 @@ class PenagihanFragment : Fragment() {
     private lateinit var penagihanViewModel: PenagihanViewModel
     private lateinit var penagihanAdapter: PenagihanAdapter
 
-    private var lastCheckedRadioButtonId = -1
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +39,11 @@ class PenagihanFragment : Fragment() {
         setupSearch()
         setupFilterCheckBoxes()
         observeViewModel()
+
+        // Show progress bar before fetching data
+        binding.progressBar.visibility = View.VISIBLE
+        binding.nestedScrollView.visibility = View.GONE
+        penagihanViewModel.fetchData()
     }
 
     private fun setupToolbar() {
@@ -55,15 +58,18 @@ class PenagihanFragment : Fragment() {
         }
     }
 
-    // Method ini sekarang menerima daftar nama sebagai argumen
+    // Method this now receives a list of names as an argument
     private fun setupDropdown(pjNames: List<String>) {
-        // Tambahkan "Semua" di awal daftar untuk opsi clear filter
         val items = mutableListOf("Semua").apply { addAll(pjNames) }
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, items)
         binding.actvPenanggungJawab.setAdapter(adapter)
 
+        // Set default selection to "Semua"
+        binding.actvPenanggungJawab.setText(items[0], false)
+        // The initial filter is already handled by the ViewModel
+
         binding.actvPenanggungJawab.setOnItemClickListener { _, _, position, _ ->
-            // Gunakan nama yang dipilih untuk memfilter
+            // Use the selected name to filter
             val selectedPjName = if (items[position] == "Semua") null else items[position]
             penagihanViewModel.setPjFilter(selectedPjName)
         }
@@ -101,7 +107,7 @@ class PenagihanFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        // Observer baru untuk daftar penanggung jawab
+        // New observer for the list of persons in charge
         penagihanViewModel.penanggungJawabList.observe(viewLifecycleOwner) { pjList ->
             val pjNames = pjList.mapNotNull { it.name }
             setupDropdown(pjNames)
@@ -109,6 +115,9 @@ class PenagihanFragment : Fragment() {
 
         penagihanViewModel.pelangganList.observe(viewLifecycleOwner) { pelanggan ->
             penagihanAdapter.updateData(pelanggan)
+            // Hide progress bar and show content after data is loaded
+            binding.progressBar.visibility = View.GONE
+            binding.nestedScrollView.visibility = View.VISIBLE
         }
 
         penagihanViewModel.statistik.observe(viewLifecycleOwner) { stats ->

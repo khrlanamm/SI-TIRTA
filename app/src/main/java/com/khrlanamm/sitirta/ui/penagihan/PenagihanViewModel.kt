@@ -11,29 +11,35 @@ class PenagihanViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
     private val pelangganCollection = db.collection("pelanggan")
-    private val pjCollection = db.collection("penanggung_jawab") // Koleksi baru
+    private val pjCollection = db.collection("penanggung_jawab")
 
-    // Menyimpan daftar asli dari Firestore
+    private var isDataFetched = false
+
+    // Stores the original list from Firestore
     private var _originalPelangganList = listOf<Pelanggan>()
-    private var _originalPenanggungJawabList = listOf<PenanggungJawab>() // Daftar PJ asli
+    private var _originalPenanggungJawabList = listOf<PenanggungJawab>() // Original PJ list
 
-    // LiveData untuk daftar pelanggan yang akan ditampilkan di UI
+    // LiveData for the list of customers to be displayed in the UI
     private val _pelangganList = MutableLiveData<List<Pelanggan>>()
     val pelangganList: LiveData<List<Pelanggan>> get() = _pelangganList
 
-    // LiveData untuk daftar Penanggung Jawab
+    // LiveData for the list of Persons in Charge
     private val _penanggungJawabList = MutableLiveData<List<PenanggungJawab>>()
     val penanggungJawabList: LiveData<List<PenanggungJawab>> get() = _penanggungJawabList
 
-    // LiveData untuk statistik
+    // LiveData for statistics
     private val _statistik = MutableLiveData<Map<String, Pair<Int, Int>>>()
     val statistik: LiveData<Map<String, Pair<Int, Int>>> get() = _statistik
 
-    private var currentPjPrefix: String? = "Semua"
+    // Initial PJ filter is null, which means "Semua" (All)
+    private var currentPjPrefix: String? = null
     private var currentSearchQuery: String = ""
     private var currentPaymentStatusFilter: List<String> = listOf("Sudah Bayar", "Belum Bayar")
 
-    init {
+    fun fetchData() {
+        if (isDataFetched) return
+        isDataFetched = true
+
         fetchDataFromFirestore()
         fetchPenanggungJawab()
     }
@@ -69,32 +75,41 @@ class PenagihanViewModel : ViewModel() {
     private fun applyFilters() {
         var filteredList = _originalPelangganList
 
-        // 1. Filter berdasarkan Penanggung Jawab (PJ)
+        // 1. Filter based on Person in Charge (PJ)
+        // If currentPjPrefix is null, this filter is skipped (showing all)
         currentPjPrefix?.let { prefix ->
-            filteredList = filteredList.filter {
-                it.id_pelanggan?.startsWith(prefix, ignoreCase = true) == true
+            if (prefix.isNotEmpty()) { // Ensure prefix is not empty
+                filteredList = filteredList.filter {
+                    it.id_pelanggan?.startsWith(prefix, ignoreCase = true) == true
+                }
             }
         }
 
-        // 2. Filter berdasarkan Pencarian Nama
+        // 2. Filter based on Name Search
         if (currentSearchQuery.isNotEmpty()) {
             filteredList = filteredList.filter {
                 it.nama?.contains(currentSearchQuery, ignoreCase = true) == true
             }
         }
 
-        // 3. Filter berdasarkan Status Pembayaran
+        // 3. Filter based on Payment Status
         filteredList = filteredList.filter { pelanggan ->
             currentPaymentStatusFilter.any { status ->
                 pelanggan.status_pembayaran.equals(status, ignoreCase = true)
             }
         }
 
-        val sortedList = filteredList.sortedBy { it.status_penagihan }
+        val sortedList = filteredList.sortedWith(
+            compareBy(
+                { it.status_penagihan != "Belum Ditagih" }, // false (Belum Ditagih) comes first
+                { it.nama } // Then sort by name
+            )
+        )
 
         _pelangganList.value = sortedList
         calculateStatistics(sortedList)
     }
+
 
     private fun calculateStatistics(list: List<Pelanggan>) {
         if (list.isEmpty()) {
@@ -120,6 +135,8 @@ class PenagihanViewModel : ViewModel() {
     }
 
     fun setPjFilter(pjName: String?) {
+        // If pjName is null (from "Semua"), set prefix to null.
+        // Otherwise, find the prefix from the original list.
         currentPjPrefix = if (pjName == null) {
             null
         } else {
