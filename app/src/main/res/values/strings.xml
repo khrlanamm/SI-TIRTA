@@ -27,10 +27,4 @@
 
     <!-- Penagihan -->
     <string name="action_penagihan">Penagihan</string>
-    <string-array name="penanggung_jawab_array">
-        <item>Ari Widodo</item>
-        <item>Sukarsin</item>
-        <item>Suparman</item>
-        <item>Suparnen</item>
-    </string-array>
 </resources>

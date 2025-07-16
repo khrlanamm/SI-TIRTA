@@ -77,7 +77,6 @@ class PenagihanAdapter(private var pelangganList: List<Pelanggan>) :
             colorSudah: Int,
             colorBelum: Int
         ) {
-            // Logika disederhanakan dan diperbaiki
             if (status.equals(textSudah, ignoreCase = true)) {
                 button.text = textSudah
                 button.backgroundTintList = ContextCompat.getColorStateList(context, colorSudah)

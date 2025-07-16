@@ -5,30 +5,52 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.khrlanamm.sitirta.data.Pelanggan
+import com.khrlanamm.sitirta.data.PenanggungJawab
 
 class PenagihanViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
     private val pelangganCollection = db.collection("pelanggan")
+    private val pjCollection = db.collection("penanggung_jawab") // Koleksi baru
 
     // Menyimpan daftar asli dari Firestore
     private var _originalPelangganList = listOf<Pelanggan>()
+    private var _originalPenanggungJawabList = listOf<PenanggungJawab>() // Daftar PJ asli
 
     // LiveData untuk daftar pelanggan yang akan ditampilkan di UI
     private val _pelangganList = MutableLiveData<List<Pelanggan>>()
     val pelangganList: LiveData<List<Pelanggan>> get() = _pelangganList
+
+    // LiveData untuk daftar Penanggung Jawab
+    private val _penanggungJawabList = MutableLiveData<List<PenanggungJawab>>()
+    val penanggungJawabList: LiveData<List<PenanggungJawab>> get() = _penanggungJawabList
 
     // LiveData untuk statistik
     private val _statistik = MutableLiveData<Map<String, Pair<Int, Int>>>()
     val statistik: LiveData<Map<String, Pair<Int, Int>>> get() = _statistik
 
     // Filter states
-    private var currentPjPrefix: String? = null // null berarti tampilkan semua
+    private var currentPjPrefix: String? = null
     private var currentSearchQuery: String = ""
-    private var currentPaymentStatusFilter: String? = null // null berarti tampilkan semua
+    private var currentPaymentStatusFilter: String? = null
 
     init {
         fetchDataFromFirestore()
+        fetchPenanggungJawab()
+    }
+
+    private fun fetchPenanggungJawab() {
+        pjCollection.addSnapshotListener { snapshots, error ->
+            if (error != null) {
+                // Handle error
+                return@addSnapshotListener
+            }
+
+            if (snapshots != null) {
+                _originalPenanggungJawabList = snapshots.toObjects(PenanggungJawab::class.java)
+                _penanggungJawabList.value = _originalPenanggungJawabList
+            }
+        }
     }
 
     private fun fetchDataFromFirestore() {
@@ -97,12 +119,10 @@ class PenagihanViewModel : ViewModel() {
     }
 
     fun setPjFilter(pjName: String?) {
-        currentPjPrefix = when (pjName) {
-            "Ari Widodo" -> "AW"
-            "Sukarsin" -> "SK"
-            "Suparman" -> "SM"
-            "Suparnen" -> "SN"
-            else -> null // Jika null atau nama lain, tampilkan semua
+        currentPjPrefix = if (pjName == null) {
+            null
+        } else {
+            _originalPenanggungJawabList.find { it.name == pjName }?.prefix
         }
         applyFilters()
     }

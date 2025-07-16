@@ -37,7 +37,7 @@ class PenagihanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupToolbar()
-        setupDropdown()
+        // setupDropdown() akan dipanggil dari dalam observeViewModel
         setupRecyclerView()
         setupSearch()
         setupFilterRadioButtons()
@@ -48,26 +48,25 @@ class PenagihanFragment : Fragment() {
         (activity as? AppCompatActivity)?.setSupportActionBar(binding.toolbar)
         (activity as? AppCompatActivity)?.supportActionBar?.apply {
             title = "Penagihan"
-            // Hapus tombol kembali jika ini adalah fragment utama
-            // setDisplayHomeAsUpEnabled(true)
-            // setDisplayShowHomeEnabled(true)
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
         }
-        // binding.toolbar.setNavigationOnClickListener {
-        //     activity?.onBackPressed()
-        // }
+        binding.toolbar.setNavigationOnClickListener {
+            activity?.onBackPressed()
+        }
     }
 
-    private fun setupDropdown() {
-        val itemsFromResource = resources.getStringArray(R.array.penanggung_jawab_array)
+    // Method ini sekarang menerima daftar nama sebagai argumen
+    private fun setupDropdown(pjNames: List<String>) {
         // Tambahkan "Semua" di awal daftar untuk opsi clear filter
-        val items = mutableListOf("Semua").apply { addAll(itemsFromResource) }
-
+        val items = mutableListOf("Semua").apply { addAll(pjNames) }
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, items)
         binding.actvPenanggungJawab.setAdapter(adapter)
 
         binding.actvPenanggungJawab.setOnItemClickListener { _, _, position, _ ->
-            val selectedPj = if (items[position] == "Semua") null else items[position]
-            penagihanViewModel.setPjFilter(selectedPj)
+            // Gunakan nama yang dipilih untuk memfilter
+            val selectedPjName = if (items[position] == "Semua") null else items[position]
+            penagihanViewModel.setPjFilter(selectedPjName)
         }
     }
 
@@ -88,15 +87,14 @@ class PenagihanFragment : Fragment() {
 
     private fun setupFilterRadioButtons() {
         binding.rgStatus.setOnCheckedChangeListener { group, checkedId ->
-            // Jika radio button yang sama di-klik lagi, batalkan pilihan
             if (checkedId == lastCheckedRadioButtonId) {
                 group.clearCheck()
                 penagihanViewModel.setPaymentStatusFilter(null)
-                lastCheckedRadioButtonId = -1 // Reset
+                lastCheckedRadioButtonId = -1
                 return@setOnCheckedChangeListener
             }
 
-            lastCheckedRadioButtonId = checkedId // Simpan ID yang baru dipilih
+            lastCheckedRadioButtonId = checkedId
             when (checkedId) {
                 R.id.rb_sudah_dibayar -> penagihanViewModel.setPaymentStatusFilter("Sudah Dibayar")
                 R.id.rb_belum_dibayar -> penagihanViewModel.setPaymentStatusFilter("Belum Dibayar")
@@ -105,6 +103,14 @@ class PenagihanFragment : Fragment() {
     }
 
     private fun observeViewModel() {
+        // Observer baru untuk daftar penanggung jawab
+        penagihanViewModel.penanggungJawabList.observe(viewLifecycleOwner) { pjList ->
+            // Ambil daftar nama dari objek PenanggungJawab
+            val pjNames = pjList.mapNotNull { it.name }
+            // Panggil setupDropdown dengan daftar nama yang didapat dari Firebase
+            setupDropdown(pjNames)
+        }
+
         penagihanViewModel.pelangganList.observe(viewLifecycleOwner) { pelanggan ->
             penagihanAdapter.updateData(pelanggan)
         }
