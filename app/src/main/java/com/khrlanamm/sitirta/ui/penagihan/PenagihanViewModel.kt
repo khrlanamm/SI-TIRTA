@@ -106,7 +106,7 @@ class PenagihanViewModel : ViewModel() {
 
         val total = list.size
         val sudahDitagih = list.count { it.status_penagihan.equals("Sudah Ditagih", ignoreCase = true) }
-        val sudahDibayar = list.count { it.status_pembayaran.equals("Sudah Dibayar", ignoreCase = true) }
+        val sudahDibayar = list.count { it.status_pembayaran.equals("Sudah Bayar", ignoreCase = true) }
 
         val belumDitagih = total - sudahDitagih
         val belumDibayar = total - sudahDibayar

@@ -96,8 +96,8 @@ class PenagihanFragment : Fragment() {
 
             lastCheckedRadioButtonId = checkedId
             when (checkedId) {
-                R.id.rb_sudah_dibayar -> penagihanViewModel.setPaymentStatusFilter("Sudah Dibayar")
-                R.id.rb_belum_dibayar -> penagihanViewModel.setPaymentStatusFilter("Belum Dibayar")
+                R.id.rb_sudah_dibayar -> penagihanViewModel.setPaymentStatusFilter("Sudah Bayar")
+                R.id.rb_belum_dibayar -> penagihanViewModel.setPaymentStatusFilter("Belum Bayar")
             }
         }
     }
@@ -133,11 +133,11 @@ class PenagihanFragment : Fragment() {
             binding.progressBelumDitagih.progress = persenBelumDitagih
 
             val persenSudahDibayar = if (totalPembayaran > 0) (sudahDibayar * 100) / totalPembayaran else 0
-            binding.tvSudahDibayar.text = "Sudah Dibayar : $sudahDibayar ($persenSudahDibayar%)"
+            binding.tvSudahDibayar.text = "Sudah Bayar : $sudahDibayar ($persenSudahDibayar%)"
             binding.progressSudahDibayar.progress = persenSudahDibayar
 
             val persenBelumDibayar = if (totalPembayaran > 0) (belumDibayar * 100) / totalPembayaran else 0
-            binding.tvBelumDibayar.text = "Belum Dibayar : $belumDibayar ($persenBelumDibayar%)"
+            binding.tvBelumDibayar.text = "Belum Bayar : $belumDibayar ($persenBelumDibayar%)"
             binding.progressBelumDibayar.progress = persenBelumDibayar
         }
     }

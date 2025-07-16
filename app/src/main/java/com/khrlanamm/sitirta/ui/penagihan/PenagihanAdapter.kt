@@ -28,7 +28,7 @@ class PenagihanAdapter(private var pelangganList: List<Pelanggan>) :
 
     fun updateData(newPelangganList: List<Pelanggan>) {
         pelangganList = newPelangganList
-        notifyDataSetChanged() // Consider using DiffUtil for better performance
+        notifyDataSetChanged()
     }
 
     inner class PelangganViewHolder(private val binding: ItemPersonBinding) :
@@ -55,10 +55,10 @@ class PenagihanAdapter(private var pelangganList: List<Pelanggan>) :
             setupButtonStatus(
                 binding.btnStatusPembayaran,
                 pelanggan.status_pembayaran,
-                "Sudah Dibayar",
-                "Belum Dibayar",
+                "Sudah Bayar",
+                "Belum Bayar",
                 R.color.status_green,
-                R.color.status_blue // Menggunakan warna merah untuk status belum bayar
+                R.color.status_blue
             )
 
             // Set OnClickListener
