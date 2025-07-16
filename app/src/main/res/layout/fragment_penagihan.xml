@@ -7,7 +7,6 @@
     android:background="@color/navy_tirta_light"
     tools:context=".ui.penagihan.PenagihanFragment">
 
-    <!-- Toolbar di bagian atas -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="0dp"
@@ -26,7 +25,7 @@
             app:titleTextColor="@color/black" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
@@ -38,13 +37,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="100dp">
-            <!-- PERUBAHAN: Menggunakan padding spesifik dan menambahkan paddingBottom yang lebih besar -->
-
-            <!-- Label Penanggung Jawab -->
+            android:padding="16dp">
             <TextView
                 android:id="@+id/tv_penanggung_jawab_label"
                 android:layout_width="wrap_content"
@@ -55,7 +48,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Dropdown Penanggung Jawab -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/dropdown_penanggung_jawab"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -75,15 +67,14 @@
                     android:background="@drawable/dropdown_background"
                     android:inputType="none"
                     android:padding="16dp"
-                    android:text="Ari Widodo"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    tools:ignore="LabelFor" />
+                    tools:ignore="LabelFor"
+                    tools:text="Ari Widodo" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Card Statistik -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_statistik"
                 android:layout_width="0dp"
@@ -111,105 +102,94 @@
                         android:textStyle="bold"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
-
-                    <!-- Statistik Tagihan -->
                     <TextView
                         android:id="@+id/tv_belum_ditagih"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Belum Ditagih : 120 (60%)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_statistik_title" />
-
+                        app:layout_constraintTop_toBottomOf="@id/tv_statistik_title"
+                        tools:text="Belum Ditagih : 120 (60%)" />
                     <ProgressBar
                         android:id="@+id/progress_belum_ditagih"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="0dp"
                         android:layout_height="8dp"
                         android:layout_marginTop="4dp"
-                        android:progress="60"
                         android:progressDrawable="@drawable/progress_bar_blue"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_belum_ditagih" />
-
+                        app:layout_constraintTop_toBottomOf="@id/tv_belum_ditagih"
+                        tools:progress="60" />
                     <TextView
                         android:id="@+id/tv_sudah_ditagih"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Sudah Ditagih : 80 (40%)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progress_belum_ditagih" />
-
+                        app:layout_constraintTop_toBottomOf="@id/progress_belum_ditagih"
+                        tools:text="Sudah Ditagih : 80 (40%)" />
                     <ProgressBar
                         android:id="@+id/progress_sudah_ditagih"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="0dp"
                         android:layout_height="8dp"
                         android:layout_marginTop="4dp"
-                        android:progress="40"
                         android:progressDrawable="@drawable/progress_bar_green"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_sudah_ditagih" />
-
-                    <!-- Statistik Pembayaran -->
+                        app:layout_constraintTop_toBottomOf="@id/tv_sudah_ditagih"
+                        tools:progress="40" />
                     <TextView
                         android:id="@+id/tv_belum_dibayar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Belum Dibayar : 180 (90%)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progress_sudah_ditagih" />
-
+                        app:layout_constraintTop_toBottomOf="@id/progress_sudah_ditagih"
+                        tools:text="Belum Dibayar : 180 (90%)" />
                     <ProgressBar
                         android:id="@+id/progress_belum_dibayar"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="0dp"
                         android:layout_height="8dp"
                         android:layout_marginTop="4dp"
-                        android:progress="90"
                         android:progressDrawable="@drawable/progress_bar_blue"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_belum_dibayar" />
-
+                        app:layout_constraintTop_toBottomOf="@id/tv_belum_dibayar"
+                        tools:progress="90" />
                     <TextView
                         android:id="@+id/tv_sudah_dibayar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Sudah Dibayar : 20 (10%)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progress_belum_dibayar" />
-
+                        app:layout_constraintTop_toBottomOf="@id/progress_belum_dibayar"
+                        tools:text="Sudah Dibayar : 20 (10%)" />
                     <ProgressBar
                         android:id="@+id/progress_sudah_dibayar"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="0dp"
                         android:layout_height="8dp"
                         android:layout_marginTop="4dp"
-                        android:progress="10"
                         android:progressDrawable="@drawable/progress_bar_green"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_sudah_dibayar" />
+                        app:layout_constraintTop_toBottomOf="@id/tv_sudah_dibayar"
+                        tools:progress="10" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Label Pencarian -->
             <TextView
                 android:id="@+id/tv_pencarian_label"
                 android:layout_width="wrap_content"
@@ -222,7 +202,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/card_statistik" />
 
-            <!-- Search Bar -->
             <EditText
                 android:id="@+id/et_search"
                 android:layout_width="0dp"
@@ -241,7 +220,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_pencarian_label" />
 
-            <!-- Radio Buttons -->
             <RadioGroup
                 android:id="@+id/rg_status"
                 android:layout_width="0dp"
@@ -269,12 +247,13 @@
                     android:textColor="@color/text_secondary" />
             </RadioGroup>
 
-            <!-- RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_penagihan"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:clipToPadding="false"
+                android:paddingBottom="80dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -283,6 +262,6 @@
                 tools:listitem="@layout/item_person" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
