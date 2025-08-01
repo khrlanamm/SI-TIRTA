@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -38,7 +39,6 @@ class CetakActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityCetakBinding
-    // Pastikan properti di data class Pelanggan menggunakan 'var' agar bisa diubah.
     private var pelanggan: Pelanggan? = null
     private var selectedPrinter: BluetoothConnection? = null
     private val db = FirebaseFirestore.getInstance()
@@ -98,13 +98,11 @@ class CetakActivity : AppCompatActivity() {
             binding.tvTotalTagihanBulanIniLabel.text = "Total Tagihan Bulan $namaBulanIni:"
 
             val meterLalu = p.meteran?.get("bulan_lalu") ?: 0
-            binding.tvMeterLaluValue.text = meterLalu.toString()
+            binding.etMeterLaluValue.setText(meterLalu.toString())
 
             val meterIni = p.meteran?.get("bulan_ini")
             if (meterIni != null) {
                 binding.etMeterIniValue.setText(meterIni.toString())
-                binding.etMeterIniValue.isEnabled = false
-                binding.buttonHitung.isEnabled = false
                 calculateAndDisplayBill(meterLalu, meterIni)
             }
 
@@ -121,7 +119,89 @@ class CetakActivity : AppCompatActivity() {
                 handlePembayaran()
             }
         }
+        // NEW: Listeners for new buttons
+        binding.buttonEditNama.setOnClickListener { showEditNameDialog() }
+        binding.buttonHapusData.setOnClickListener { showDeleteConfirmationDialog() }
     }
+
+    // NEW: Function to show edit name dialog
+    private fun showEditNameDialog() {
+        val currentName = pelanggan?.nama ?: ""
+        val editText = EditText(this).apply {
+            setText(currentName)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Edit Nama Pelanggan")
+            .setView(editText)
+            .setPositiveButton("Simpan") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty() && newName != currentName) {
+                    updateCustomerName(newName)
+                } else if (newName.isEmpty()) {
+                    Toast.makeText(this, "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    // NEW: Function to update customer name in Firestore
+    private fun updateCustomerName(newName: String) {
+        pelanggan?.id_pelanggan?.let { id ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    db.collection("pelanggan").document(id)
+                        .update("nama", newName)
+                        .await()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CetakActivity, "Nama berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        pelanggan?.nama = newName
+                        binding.itemPelanggan.tvPersonName.text = newName
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CetakActivity, "Gagal memperbarui nama: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+    // NEW: Function to show delete confirmation dialog
+    private fun showDeleteConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Data Pelanggan")
+            .setMessage("Apakah Anda yakin ingin menghapus data pelanggan ini secara permanen? Tindakan ini tidak dapat dibatalkan.")
+            .setPositiveButton("Ya, Hapus") { _, _ ->
+                deleteCustomerData()
+            }
+            .setNegativeButton("Batal", null)
+            .setIcon(R.drawable.ic_delete)
+            .show()
+    }
+
+    // NEW: Function to delete customer data from Firestore
+    private fun deleteCustomerData() {
+        pelanggan?.id_pelanggan?.let { id ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    db.collection("pelanggan").document(id)
+                        .delete()
+                        .await()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CetakActivity, "Data pelanggan berhasil dihapus", Toast.LENGTH_SHORT).show()
+                        finish() // Go back to the previous activity
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@CetakActivity, "Gagal menghapus data: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
 
     private fun handlePembayaran() {
         AlertDialog.Builder(this)
@@ -147,11 +227,7 @@ class CetakActivity : AppCompatActivity() {
                         .await()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@CetakActivity, "Status pembayaran berhasil diperbarui", Toast.LENGTH_SHORT).show()
-
-                        // FIX: Perbarui data pelanggan lokal agar UI konsisten
-                        // PENTING: Ini hanya akan berfungsi jika properti di Pelanggan.kt adalah 'var'
                         pelanggan?.status_pembayaran = "Sudah Bayar"
-
                         updateStatusButtons(pelanggan?.status_penagihan, pelanggan?.status_pembayaran)
                     }
                 } catch (e: Exception) {
@@ -165,13 +241,16 @@ class CetakActivity : AppCompatActivity() {
     }
 
     private fun handleHitungTagihan() {
+        val meterLaluStr = binding.etMeterLaluValue.text.toString()
         val meterIniStr = binding.etMeterIniValue.text.toString()
-        if (meterIniStr.isEmpty()) {
-            Toast.makeText(this, "Meter bulan ini tidak boleh kosong", Toast.LENGTH_SHORT).show()
+
+        if (meterLaluStr.isEmpty() || meterIniStr.isEmpty()) {
+            Toast.makeText(this, "Meter bulan lalu dan bulan ini tidak boleh kosong", Toast.LENGTH_SHORT).show()
             return
         }
+
+        val meterLalu = meterLaluStr.toLong()
         val meterIni = meterIniStr.toLong()
-        val meterLalu = pelanggan?.meteran?.get("bulan_lalu") ?: 0
 
         if (meterIni < meterLalu) {
             Toast.makeText(this, "Meter bulan ini tidak boleh lebih kecil dari bulan lalu", Toast.LENGTH_SHORT).show()
@@ -179,7 +258,7 @@ class CetakActivity : AppCompatActivity() {
         }
 
         calculateAndDisplayBill(meterLalu, meterIni)
-        updateBillingDataInFirestore(meterIni)
+        updateBillingDataInFirestore(meterLalu, meterIni)
     }
 
     private fun calculateAndDisplayBill(meterLalu: Long, meterIni: Long) {
@@ -192,26 +271,21 @@ class CetakActivity : AppCompatActivity() {
         binding.tvTotalTagihanBulanIniValue.text = formatRupiah(totalTagihan.toDouble())
     }
 
-    private fun updateBillingDataInFirestore(meterBulanIni: Long) {
+    private fun updateBillingDataInFirestore(meterBulanLalu: Long, meterBulanIni: Long) {
         pelanggan?.id_pelanggan?.let { id ->
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val updates = mapOf(
+                        "meteran.bulan_lalu" to meterBulanLalu,
                         "meteran.bulan_ini" to meterBulanIni,
                         "status_penagihan" to "Sudah Ditagih"
                     )
                     db.collection("pelanggan").document(id).update(updates).await()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@CetakActivity, "Tagihan berhasil disimpan", Toast.LENGTH_SHORT).show()
-                        binding.buttonHitung.isEnabled = false
-                        binding.etMeterIniValue.isEnabled = false
 
-                        // FIX: Perbarui data pelanggan lokal agar UI konsisten
-                        // PENTING: Ini hanya akan berfungsi jika properti di Pelanggan.kt adalah 'var'
                         pelanggan?.status_penagihan = "Sudah Ditagih"
-
-                        // FIX: Gunakan sintaks yang benar untuk update Map
-                        // PENTING: Ini hanya akan berfungsi jika 'meteran' di Pelanggan.kt adalah MutableMap
+                        (pelanggan?.meteran as? MutableMap)?.put("bulan_lalu", meterBulanLalu)
                         (pelanggan?.meteran as? MutableMap)?.put("bulan_ini", meterBulanIni)
 
                         updateStatusButtons(pelanggan?.status_penagihan, pelanggan?.status_pembayaran)
@@ -287,7 +361,7 @@ class CetakActivity : AppCompatActivity() {
         val (namaBulanLalu, namaBulanIni) = getMonthNames()
         val currentDate = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
 
-        val meterLalu = p.meteran?.get("bulan_lalu") ?: 0
+        val meterLalu = binding.etMeterLaluValue.text.toString().toLongOrNull() ?: 0
         val meterIni = binding.etMeterIniValue.text.toString().toLongOrNull() ?: 0
         val selisih = meterIni - meterLalu
         val tagihanAir = selisih * HARGA_PER_METER
@@ -298,7 +372,7 @@ class CetakActivity : AppCompatActivity() {
             applicationContext.resources.getDrawable(R.drawable.bw_logo, applicationContext.theme)
         ) + "</img>\n"
 
-        val statusPembayaranText = if (pelanggan?.status_pembayaran.equals("Sudah Bayar", ignoreCase = true)) {
+        val statusPembayaranText = if (binding.switchSudahDibayar.isChecked) {
             "[C]<b>LUNAS</b>\n"
         } else {
             "[C]<b>BELUM BAYAR</b>\n"
