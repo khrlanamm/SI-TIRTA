@@ -108,7 +108,7 @@ class CetakActivity : AppCompatActivity() {
                 calculateAndDisplayBill(meterLalu, meterIni)
             }
 
-            binding.switchSudahDibayar.isChecked = p.status_pembayaran.equals("Sudah Dibayar", ignoreCase = true)
+            binding.switchSudahDibayar.isChecked = p.status_pembayaran.equals("Sudah Bayar", ignoreCase = true)
         }
     }
 
@@ -117,7 +117,7 @@ class CetakActivity : AppCompatActivity() {
         binding.buttonHitung.setOnClickListener { handleHitungTagihan() }
         binding.buttonPrint.setOnClickListener { printReceipt() }
         binding.switchSudahDibayar.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked && pelanggan?.status_pembayaran?.equals("Belum Dibayar", ignoreCase = true) == true) {
+            if (isChecked && pelanggan?.status_pembayaran?.equals("Belum Bayar", ignoreCase = true) == true) {
                 handlePembayaran()
             }
         }
@@ -126,7 +126,7 @@ class CetakActivity : AppCompatActivity() {
     private fun handlePembayaran() {
         AlertDialog.Builder(this)
             .setTitle("Konfirmasi Pembayaran")
-            .setMessage("Apakah Anda yakin ingin menandai tagihan ini sebagai 'Sudah Dibayar'?")
+            .setMessage("Apakah Anda yakin ingin menandai tagihan ini sebagai 'Sudah Bayar'?")
             .setPositiveButton("Ya, Yakin") { _, _ ->
                 updatePaymentStatus()
             }
@@ -143,14 +143,14 @@ class CetakActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     db.collection("pelanggan").document(id)
-                        .update("status_pembayaran", "Sudah Dibayar")
+                        .update("status_pembayaran", "Sudah Bayar")
                         .await()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@CetakActivity, "Status pembayaran berhasil diperbarui", Toast.LENGTH_SHORT).show()
 
                         // FIX: Perbarui data pelanggan lokal agar UI konsisten
                         // PENTING: Ini hanya akan berfungsi jika properti di Pelanggan.kt adalah 'var'
-                        pelanggan?.status_pembayaran = "Sudah Dibayar"
+                        pelanggan?.status_pembayaran = "Sudah Bayar"
 
                         updateStatusButtons(pelanggan?.status_penagihan, pelanggan?.status_pembayaran)
                     }
@@ -298,14 +298,14 @@ class CetakActivity : AppCompatActivity() {
             applicationContext.resources.getDrawable(R.drawable.bw_logo, applicationContext.theme)
         ) + "</img>\n"
 
-        val statusPembayaranText = if (pelanggan?.status_pembayaran.equals("Sudah Dibayar", ignoreCase = true)) {
+        val statusPembayaranText = if (pelanggan?.status_pembayaran.equals("Sudah Bayar", ignoreCase = true)) {
             "[C]<b>LUNAS</b>\n"
         } else {
-            "[C]<b>BELUM DIBAYAR</b>\n"
+            "[C]<b>BELUM BAYAR</b>\n"
         }
 
         return logo +
-                "[C]<b>KPSPAM BANYU AGUNG</b>\n" +
+                "[C]<b>KP-SPAMS BANYU AGUNG</b>\n" +
                 "[C]Kp. Tanah Nago Sungai Pulai\n" +
                 "[C]================================\n" +
                 "[L]<b>ID:</b> ${p.id_pelanggan}\n" +
@@ -314,10 +314,11 @@ class CetakActivity : AppCompatActivity() {
                 "[C]--------------------------------\n" +
                 "[L]Meter $namaBulanLalu:[R]$meterLalu\n" +
                 "[L]Meter $namaBulanIni:[R]$meterIni\n" +
-                "[L]<b>Meter Terpakai:</b>[R]<b>$selisih m³</b>\n" +
+                "[L]<b>Meter Terpakai:</b>[R]<b>$selisih</b>\n" +
                 "[L]Harga per meter:[R]${formatRupiah(HARGA_PER_METER.toDouble())}\n" +
+                "[C]--------------------------------\n" +
                 "[L]Total Tagihan Air:[R]${formatRupiah(tagihanAir.toDouble())}\n" +
-                "[L]Iuran Bulanan:[R]${formatRupiah(IURAN_BULANAN.toDouble())}\n" +
+                "[L]Biaya Beban:[R]${formatRupiah(IURAN_BULANAN.toDouble())}\n" +
                 "[C]================================\n" +
                 "[L]<b>TOTAL TAGIHAN</b>[R]<b>${formatRupiah(totalTagihan.toDouble())}</b>\n\n" +
                 "[C]================================\n" +
@@ -348,8 +349,7 @@ class CetakActivity : AppCompatActivity() {
 
     private fun updateStatusButtons(statusTagihan: String?, statusBayar: String?) {
         setupButton(binding.itemPelanggan.btnStatusTagihan, statusTagihan, "Sudah Ditagih", "Belum Ditagih", R.color.status_green, R.color.status_blue)
-        // FIX: Menggunakan warna merah untuk status "Belum Dibayar"
-        setupButton(binding.itemPelanggan.btnStatusPembayaran, statusBayar, "Sudah Dibayar", "Belum Dibayar", R.color.status_green, R.color.status_blue)
+        setupButton(binding.itemPelanggan.btnStatusPembayaran, statusBayar, "Sudah Bayar", "Belum Bayar", R.color.status_green, R.color.status_blue)
     }
 
     private fun setupButton(button: com.google.android.material.button.MaterialButton, status: String?, textSudah: String, textBelum: String, colorSudah: Int, colorBelum: Int) {
