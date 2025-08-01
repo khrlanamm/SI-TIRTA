@@ -21,12 +21,16 @@ import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.firestore.WriteBatch
 import com.khrlanamm.sitirta.R
 import com.khrlanamm.sitirta.data.PenanggungJawab
 import com.khrlanamm.sitirta.databinding.FragmentDashboardBinding
 import com.khrlanamm.sitirta.ui.auth.AccountActivity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DashboardFragment : Fragment() {
 
@@ -55,6 +59,7 @@ class DashboardFragment : Fragment() {
 
         setupWelcomeText(userName)
         setupProfilePicture(userPhotoUrl)
+        setupResetCardTitle()
         setupClickListeners()
         setupOnBackPressed()
     }
@@ -75,6 +80,12 @@ class DashboardFragment : Fragment() {
         }
     }
 
+    private fun setupResetCardTitle() {
+        val monthFormat = SimpleDateFormat("MMMM", Locale("id", "ID"))
+        val currentMonth = monthFormat.format(Date())
+        binding.tvResetDataTitle.text = "Reset Data Bulan $currentMonth"
+    }
+
     private fun setupClickListeners() {
         binding.accountButton.setOnClickListener { navigateToAccountActivity() }
         binding.accountName.setOnClickListener { navigateToAccountActivity() }
@@ -83,9 +94,12 @@ class DashboardFragment : Fragment() {
             fetchAndShowPenanggungJawabList()
         }
 
-        // UPDATED: Call the new function to add a customer
         binding.cardTambahPelanggan.setOnClickListener {
             showAddCustomerDialog()
+        }
+
+        binding.cardResetData.setOnClickListener {
+            handleResetData()
         }
     }
 
@@ -94,6 +108,86 @@ class DashboardFragment : Fragment() {
         startActivity(intent)
     }
 
+    // --- Reset Data Logic ---
+    private fun handleResetData() {
+        lifecycleScope.launch {
+            try {
+                val untaggedQuery = db.collection("pelanggan")
+                    .whereEqualTo("status_penagihan", "Belum Ditagih")
+                    .get()
+                    .await()
+
+                if (!untaggedQuery.isEmpty) {
+                    // FIXED: Use toList() to get a List<QueryDocumentSnapshot>
+                    showUntaggedCustomersDialog(untaggedQuery.toList())
+                } else {
+                    showResetConfirmationDialog()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal memeriksa data: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showUntaggedCustomersDialog(documents: List<QueryDocumentSnapshot>) {
+        val customerList = documents.joinToString("\n") { doc ->
+            val name = doc.getString("nama") ?: "N/A"
+            val rt = doc.getString("rt") ?: "N/A"
+            "- $name (RT: $rt)"
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Aksi Diblokir")
+            .setMessage("Tidak dapat mereset data. Masih ada pelanggan yang belum ditagih:\n\n$customerList")
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun showResetConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Reset Data")
+            .setMessage("Semua pelanggan sudah ditagih. Apakah Anda yakin ingin mereset data untuk bulan berikutnya? Tindakan ini tidak dapat dibatalkan.")
+            .setPositiveButton("Ya, Reset Sekarang") { _, _ ->
+                performDataReset()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun performDataReset() {
+        lifecycleScope.launch {
+            try {
+                val allCustomersQuery = db.collection("pelanggan").get().await()
+                val batch: WriteBatch = db.batch()
+
+                for (doc in allCustomersQuery.documents) {
+                    val meteran = doc.get("meteran") as? Map<*, *>
+                    val meterBulanIni = meteran?.get("bulan_ini") as? Long
+
+                    if (meterBulanIni == null) {
+                        Toast.makeText(context, "Data meter bulan ini tidak valid untuk ${doc.id}", Toast.LENGTH_SHORT).show()
+                        continue
+                    }
+
+                    val customerRef = db.collection("pelanggan").document(doc.id)
+                    batch.update(customerRef, mapOf(
+                        "status_pembayaran" to "Belum Bayar",
+                        "status_penagihan" to "Belum Ditagih",
+                        "meteran.bulan_lalu" to meterBulanIni,
+                        "meteran.bulan_ini" to null
+                    ))
+                }
+
+                batch.commit().await()
+                Toast.makeText(context, "Reset data bulanan berhasil!", Toast.LENGTH_LONG).show()
+
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal mereset data: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+
+    // --- Edit PJ & Add Customer Logic (from previous steps) ---
     private fun fetchAndShowPenanggungJawabList() {
         lifecycleScope.launch {
             try {
@@ -102,13 +196,11 @@ class DashboardFragment : Fragment() {
                     Toast.makeText(context, "Data penanggung jawab tidak ditemukan", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-
                 val documents = result.toList()
                 val items = documents.map { doc ->
                     val pj = doc.toObject(PenanggungJawab::class.java)
                     "${pj?.prefix ?: "N/A"}: ${pj?.name ?: "Tanpa Nama"}"
                 }.toTypedArray()
-
                 AlertDialog.Builder(requireContext())
                     .setTitle("Pilih Penanggung Jawab untuk Diedit")
                     .setItems(items) { _, which ->
@@ -117,7 +209,6 @@ class DashboardFragment : Fragment() {
                     }
                     .setNegativeButton("Batal", null)
                     .show()
-
             } catch (e: Exception) {
                 Toast.makeText(context, "Gagal memuat data: ${e.message}", Toast.LENGTH_LONG).show()
             }
@@ -128,17 +219,13 @@ class DashboardFragment : Fragment() {
         val pj = doc.toObject(PenanggungJawab::class.java)
         val currentName = pj?.name ?: ""
         val prefix = pj?.prefix ?: "N/A"
-
         val editText = EditText(requireContext()).apply {
             setText(currentName)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(50, 20, 50, 20)
-            }
+            ).apply { setMargins(50, 20, 50, 20) }
         }
-
         AlertDialog.Builder(requireContext())
             .setTitle("Edit Nama (Prefix: $prefix)")
             .setView(editText)
@@ -167,11 +254,9 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    // NEW: Function to show dialog for adding a new customer
     private fun showAddCustomerDialog() {
         lifecycleScope.launch {
             try {
-                // Fetch PJ list for the spinner
                 val pjResult = db.collection("penanggung_jawab").get().await()
                 if (pjResult.isEmpty) {
                     Toast.makeText(context, "Data Penanggung Jawab tidak ditemukan. Tambah PJ terlebih dahulu.", Toast.LENGTH_LONG).show()
@@ -179,13 +264,10 @@ class DashboardFragment : Fragment() {
                 }
                 val pjList = pjResult.toObjects(PenanggungJawab::class.java)
                 val pjDisplayList = pjList.map { "${it.prefix} - ${it.name}" }
-
-                // Create layout for the dialog
                 val layout = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(50)
                 }
-
                 val etNama = EditText(requireContext()).apply { hint = "Nama Pelanggan" }
                 val etRt = EditText(requireContext()).apply { hint = "RT (Contoh: 1)" }
                 val etMeterLalu = EditText(requireContext()).apply {
@@ -195,13 +277,11 @@ class DashboardFragment : Fragment() {
                 val spinnerPj = Spinner(requireContext())
                 val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, pjDisplayList)
                 spinnerPj.adapter = adapter
-
                 layout.addView(etNama)
                 layout.addView(etRt)
                 layout.addView(etMeterLalu)
                 layout.addView(TextView(requireContext()).apply { text = "\nPenanggung Jawab:" })
                 layout.addView(spinnerPj)
-
                 AlertDialog.Builder(requireContext())
                     .setTitle("Tambah Pelanggan Baru")
                     .setView(layout)
@@ -210,33 +290,26 @@ class DashboardFragment : Fragment() {
                         val rt = etRt.text.toString().trim()
                         val meterLaluStr = etMeterLalu.text.toString().trim()
                         val selectedPjPosition = spinnerPj.selectedItemPosition
-
                         if (nama.isEmpty() || rt.isEmpty() || meterLaluStr.isEmpty()) {
                             Toast.makeText(context, "Semua kolom harus diisi", Toast.LENGTH_SHORT).show()
                             return@setPositiveButton
                         }
-
                         val selectedPj = pjList[selectedPjPosition]
                         val meterLalu = meterLaluStr.toLong()
-
                         generateNewCustomerIdAndSave(selectedPj, nama, rt, meterLalu)
                     }
                     .setNegativeButton("Batal", null)
                     .show()
-
             } catch (e: Exception) {
                 Toast.makeText(context, "Gagal memuat dialog: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    // NEW: Function to generate new ID and save customer data
     private fun generateNewCustomerIdAndSave(pj: PenanggungJawab, nama: String, rt: String, meterLalu: Long) {
         lifecycleScope.launch {
             try {
                 val prefix = pj.prefix ?: throw IllegalStateException("Prefix PJ tidak boleh null")
-
-                // Find the last customer with the same prefix
                 val query = db.collection("pelanggan")
                     .whereGreaterThanOrEqualTo("id_pelanggan", prefix)
                     .whereLessThan("id_pelanggan", prefix + '\uf8ff')
@@ -244,17 +317,13 @@ class DashboardFragment : Fragment() {
                     .limit(1)
                     .get()
                     .await()
-
                 var lastNumber = 0
                 if (!query.isEmpty) {
                     val lastId = query.documents[0].id
                     lastNumber = lastId.removePrefix(prefix).toIntOrNull() ?: 0
                 }
-
                 val newNumber = lastNumber + 1
                 val newId = "$prefix${String.format("%03d", newNumber)}"
-
-                // Prepare data to be saved
                 val newCustomerData = hashMapOf(
                     "id_pelanggan" to newId,
                     "nama" to nama,
@@ -266,17 +335,13 @@ class DashboardFragment : Fragment() {
                     "status_penagihan" to "Belum Ditagih",
                     "status_pembayaran" to "Belum Bayar"
                 )
-
-                // Save new customer with the generated ID as the document ID
                 db.collection("pelanggan").document(newId).set(newCustomerData).await()
                 Toast.makeText(context, "Pelanggan baru berhasil ditambahkan: $newId", Toast.LENGTH_LONG).show()
-
             } catch (e: Exception) {
                 Toast.makeText(context, "Gagal menyimpan pelanggan: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
-
 
     private fun setupOnBackPressed() {
         val callback = object : OnBackPressedCallback(true) {
