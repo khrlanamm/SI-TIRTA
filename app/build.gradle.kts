@@ -14,8 +14,8 @@ android {
         applicationId = "com.khrlanamm.sitirta"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "SI-Tirta-v.alpha3"
+        versionCode = 4
+        versionName = "SI-Tirta-v.alpha4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
