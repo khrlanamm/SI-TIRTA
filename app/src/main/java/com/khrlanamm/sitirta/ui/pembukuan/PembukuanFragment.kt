@@ -49,11 +49,61 @@ class PembukuanFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupToolbar()
+
+        // --- LOGIKA BARU ---
+        // Panggil pengecekan otorisasi terlebih dahulu
+        setupAuthorizationObserver()
+        pembukuanViewModel.checkUserAuthorization()
+    }
+
+    /**
+     * --- FUNGSI BARU ---
+     * Mengamati hasil pengecekan otorisasi.
+     */
+    private fun setupAuthorizationObserver() {
+        pembukuanViewModel.authCheckComplete.observe(viewLifecycleOwner) { isComplete ->
+            if (isComplete) {
+                val isAuthorized = pembukuanViewModel.isBendahara.value ?: false
+                if (isAuthorized) {
+                    // Jika diizinkan, tampilkan konten dan setup UI lainnya
+                    binding.contentScrollView.visibility = View.VISIBLE
+                    initializeUI()
+                } else {
+                    // Jika tidak, sembunyikan konten dan tampilkan dialog
+                    binding.contentScrollView.visibility = View.GONE
+                    showAccessDeniedDialog()
+                }
+            }
+        }
+    }
+
+    /**
+     * --- FUNGSI BARU ---
+     * Menampilkan dialog bahwa akses ditolak.
+     */
+    private fun showAccessDeniedDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Akses Ditolak")
+            .setMessage("Fitur pembukuan hanya dapat diakses oleh Bendahara.")
+            .setCancelable(false) // Pengguna tidak bisa menutup dialog dengan tombol back
+            .setPositiveButton("OK") { _, _ ->
+                // Kembali ke halaman sebelumnya
+                activity?.onBackPressedDispatcher?.onBackPressed()
+            }
+            .show()
+    }
+
+    /**
+     * --- FUNGSI BARU ---
+     * Menggabungkan semua setup UI yang hanya boleh berjalan jika user diizinkan.
+     */
+    private fun initializeUI() {
         setupRecyclerView()
         setupSpinners()
         setupObservers()
         setupClickListeners()
 
+        // Load data awal setelah UI diinisialisasi
         val currentYear = calendar.get(Calendar.YEAR)
         val currentMonth = calendar.get(Calendar.MONTH)
         binding.spinnerTahun.setSelection(getYearAdapter().getPosition(currentYear.toString()))
@@ -75,17 +125,14 @@ class PembukuanFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = pembukuanAdapter
         }
-
-        pembukuanAdapter.setOnItemClickListener { transaksi ->
-            showItemOptionsDialog(transaksi)
-        }
+        pembukuanAdapter.setOnItemClickListener { transaksi -> showItemOptionsDialog(transaksi) }
     }
 
     private fun showItemOptionsDialog(transaksi: Transaksi) {
         val options = arrayOf("Edit Transaksi", "Hapus Transaksi")
         AlertDialog.Builder(requireContext())
             .setTitle("Pilih Aksi")
-            .setItems(options) { dialog, which ->
+            .setItems(options) { _, which ->
                 when (which) {
                     0 -> showEditTransaksiDialog(transaksi)
                     1 -> showDeleteConfirmationDialog(transaksi)
@@ -111,9 +158,7 @@ class PembukuanFragment : Fragment() {
     }
 
     private fun setupSpinners() {
-        val bulanAdapter = ArrayAdapter.createFromResource(
-            requireContext(), R.array.bulan_array, android.R.layout.simple_spinner_item
-        )
+        val bulanAdapter = ArrayAdapter.createFromResource(requireContext(), R.array.bulan_array, android.R.layout.simple_spinner_item)
         bulanAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerBulan.adapter = bulanAdapter
         binding.spinnerTahun.adapter = getYearAdapter()
@@ -157,24 +202,14 @@ class PembukuanFragment : Fragment() {
             binding.tvEmptyData.isVisible = list.isEmpty() && !binding.progressBar.isVisible
         }
 
-        pembukuanViewModel.totalPemasukan.observe(viewLifecycleOwner) {
-            binding.tvTotalPemasukan.text = currencyFormat.format(it)
-        }
-        pembukuanViewModel.totalPengeluaran.observe(viewLifecycleOwner) {
-            binding.tvTotalPengeluaran.text = currencyFormat.format(it)
-        }
-        pembukuanViewModel.saldoAkhir.observe(viewLifecycleOwner) {
-            binding.tvSaldoAkhir.text = currencyFormat.format(it)
-        }
+        pembukuanViewModel.totalPemasukan.observe(viewLifecycleOwner) { binding.tvTotalPemasukan.text = currencyFormat.format(it) }
+        pembukuanViewModel.totalPengeluaran.observe(viewLifecycleOwner) { binding.tvTotalPengeluaran.text = currencyFormat.format(it) }
+        pembukuanViewModel.saldoAkhir.observe(viewLifecycleOwner) { binding.tvSaldoAkhir.text = currencyFormat.format(it) }
     }
 
     private fun setupClickListeners() {
-        binding.btnTambahTransaksi.setOnClickListener {
-            showTambahTransaksiDialog()
-        }
-        binding.btnUnduhLaporan.setOnClickListener {
-            Toast.makeText(context, "Fitur Unduh Laporan akan segera tersedia", Toast.LENGTH_SHORT).show()
-        }
+        binding.btnTambahTransaksi.setOnClickListener { showTambahTransaksiDialog() }
+        binding.btnUnduhLaporan.setOnClickListener { Toast.makeText(context, "Fitur Unduh Laporan akan segera tersedia", Toast.LENGTH_SHORT).show() }
     }
 
     private fun showTambahTransaksiDialog() {
@@ -189,9 +224,7 @@ class PembukuanFragment : Fragment() {
 
     private fun showEditTransaksiDialog(transaksi: Transaksi) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_tambah_transaksi, null)
-        val dialogCalendar = Calendar.getInstance().apply {
-            time = transaksi.tanggal?.toDate() ?: Date()
-        }
+        val dialogCalendar = Calendar.getInstance().apply { time = transaksi.tanggal?.toDate() ?: Date() }
         setupFormDialog(dialogView, "Edit Transaksi", transaksi, dialogCalendar) { keterangan, nominal, jenis, tanggal ->
             transaksi.id?.let { id ->
                 pembukuanViewModel.updateTransaksi(id, keterangan, nominal, jenis, tanggal) { isSuccess ->
@@ -200,6 +233,7 @@ class PembukuanFragment : Fragment() {
             }
         }
     }
+
 
     private fun setupFormDialog(
         dialogView: View,
@@ -274,11 +308,8 @@ class PembukuanFragment : Fragment() {
     }
 
     private fun handleFormSubmission(isSuccess: Boolean, successMsg: String, errorMsg: String) {
-        if (isSuccess) {
-            Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-        }
+        if (isSuccess) { Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show() }
+        else { Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show() }
     }
 
     override fun onDestroyView() {
