@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
@@ -19,10 +20,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.khrlanamm.sitirta.R
+import com.khrlanamm.sitirta.data.Transaksi
 import com.khrlanamm.sitirta.databinding.FragmentPembukuanBinding
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class PembukuanFragment : Fragment() {
@@ -49,9 +52,8 @@ class PembukuanFragment : Fragment() {
         setupRecyclerView()
         setupSpinners()
         setupObservers()
-        setupClickListeners() // Pastikan fungsi ini dipanggil
+        setupClickListeners()
 
-        // Load data for the current month and year initially
         val currentYear = calendar.get(Calendar.YEAR)
         val currentMonth = calendar.get(Calendar.MONTH)
         binding.spinnerTahun.setSelection(getYearAdapter().getPosition(currentYear.toString()))
@@ -73,17 +75,48 @@ class PembukuanFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = pembukuanAdapter
         }
+
+        pembukuanAdapter.setOnItemClickListener { transaksi ->
+            showItemOptionsDialog(transaksi)
+        }
+    }
+
+    private fun showItemOptionsDialog(transaksi: Transaksi) {
+        // Tambahkan opsi "Hapus Transaksi"
+        val options = arrayOf("Edit Transaksi", "Hapus Transaksi")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Pilih Aksi")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> showEditTransaksiDialog(transaksi)
+                    1 -> showDeleteConfirmationDialog(transaksi) // Panggil dialog konfirmasi hapus
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun showDeleteConfirmationDialog(transaksi: Transaksi) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Transaksi")
+            .setMessage("Apakah Anda yakin ingin menghapus transaksi ini?\n\n\"${transaksi.keterangan}\"")
+            .setPositiveButton("Hapus") { _, _ ->
+                transaksi.id?.let { id ->
+                    pembukuanViewModel.deleteTransaksi(id) { isSuccess ->
+                        handleFormSubmission(isSuccess, "Transaksi berhasil dihapus", "Gagal menghapus transaksi")
+                    }
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun setupSpinners() {
-        // Setup Month Spinner
         val bulanAdapter = ArrayAdapter.createFromResource(
             requireContext(), R.array.bulan_array, android.R.layout.simple_spinner_item
         )
         bulanAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerBulan.adapter = bulanAdapter
-
-        // Setup Year Spinner
         binding.spinnerTahun.adapter = getYearAdapter()
 
         val selectionListener = object : AdapterView.OnItemSelectedListener {
@@ -105,7 +138,7 @@ class PembukuanFragment : Fragment() {
 
     private fun fetchDataBasedOnSelection() {
         val selectedYear = binding.spinnerTahun.selectedItem.toString().toInt()
-        val selectedMonth = binding.spinnerBulan.selectedItemPosition // 0 for January, 1 for February, etc.
+        val selectedMonth = binding.spinnerBulan.selectedItemPosition
         pembukuanViewModel.fetchTransaksi(selectedYear, selectedMonth)
     }
 
@@ -137,12 +170,9 @@ class PembukuanFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Listener dipindahkan ke tombol baru
         binding.btnTambahTransaksi.setOnClickListener {
             showTambahTransaksiDialog()
         }
-
-        // Listener untuk tombol unduh (logika menyusul)
         binding.btnUnduhLaporan.setOnClickListener {
             Toast.makeText(context, "Fitur Unduh Laporan akan segera tersedia", Toast.LENGTH_SHORT).show()
         }
@@ -151,9 +181,53 @@ class PembukuanFragment : Fragment() {
     private fun showTambahTransaksiDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_tambah_transaksi, null)
         val dialogCalendar = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("dd MMMM yyyy", localeID)
+        setupFormDialog(dialogView, "Tambah Transaksi Baru", null, dialogCalendar) { keterangan, nominal, jenis, tanggal ->
+            pembukuanViewModel.tambahTransaksi(keterangan, nominal, jenis, tanggal) { isSuccess ->
+                handleFormSubmission(isSuccess, "Transaksi berhasil disimpan", "Gagal menyimpan transaksi")
+            }
+        }
+    }
 
+    private fun showEditTransaksiDialog(transaksi: Transaksi) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_tambah_transaksi, null)
+        val dialogCalendar = Calendar.getInstance().apply {
+            time = transaksi.tanggal?.toDate() ?: Date()
+        }
+        setupFormDialog(dialogView, "Edit Transaksi", transaksi, dialogCalendar) { keterangan, nominal, jenis, tanggal ->
+            transaksi.id?.let { id ->
+                pembukuanViewModel.updateTransaksi(id, keterangan, nominal, jenis, tanggal) { isSuccess ->
+                    handleFormSubmission(isSuccess, "Transaksi berhasil diperbarui", "Gagal memperbarui transaksi")
+                }
+            }
+        }
+    }
+
+    private fun setupFormDialog(
+        dialogView: View,
+        title: String,
+        transaksi: Transaksi?,
+        dialogCalendar: Calendar,
+        onSave: (keterangan: String, nominal: Long, jenis: String, tanggal: Date) -> Unit
+    ) {
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy", localeID)
         val tvTanggalDipilih = dialogView.findViewById<TextView>(R.id.tv_tanggal_dipilih)
+        val etKeterangan = dialogView.findViewById<EditText>(R.id.et_keterangan)
+        val etNominal = dialogView.findViewById<EditText>(R.id.et_nominal)
+        val radioGroup = dialogView.findViewById<RadioGroup>(R.id.rg_jenis_transaksi)
+        val rbPemasukan = dialogView.findViewById<RadioButton>(R.id.rb_pemasukan)
+        val rbPengeluaran = dialogView.findViewById<RadioButton>(R.id.rb_pengeluaran)
+
+        dialogView.findViewById<TextView>(R.id.form_title).text = title
+        if (transaksi != null) {
+            etKeterangan.setText(transaksi.keterangan)
+            etNominal.setText(transaksi.nominal?.toString() ?: "0")
+            if (transaksi.jenis == "Debet") {
+                rbPemasukan.isChecked = true
+            } else {
+                rbPengeluaran.isChecked = true
+            }
+        }
+
         tvTanggalDipilih.text = dateFormat.format(dialogCalendar.time)
 
         val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
@@ -170,41 +244,40 @@ class PembukuanFragment : Fragment() {
                 dialogCalendar.get(Calendar.DAY_OF_MONTH)).show()
         }
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
-            .setPositiveButton("Simpan", null) // Set to null to override and prevent auto-closing
+            .setPositiveButton("Simpan", null)
             .setNegativeButton("Batal", null)
             .create()
-            .apply {
-                setOnShowListener {
-                    val positiveButton = getButton(AlertDialog.BUTTON_POSITIVE)
-                    positiveButton.setOnClickListener {
-                        val keterangan = dialogView.findViewById<EditText>(R.id.et_keterangan).text.toString().trim()
-                        val nominalStr = dialogView.findViewById<EditText>(R.id.et_nominal).text.toString().trim()
-                        val radioGroup = dialogView.findViewById<RadioGroup>(R.id.rg_jenis_transaksi)
-                        val jenis = if (radioGroup.checkedRadioButtonId == R.id.rb_pemasukan) "Debit" else "Kredit"
 
-                        if (keterangan.isEmpty() || nominalStr.isEmpty()) {
-                            Toast.makeText(context, "Keterangan dan Nominal tidak boleh kosong", Toast.LENGTH_SHORT).show()
-                            return@setOnClickListener
-                        }
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
+                val keterangan = etKeterangan.text.toString().trim()
+                val nominalStr = etNominal.text.toString().trim()
+                val jenis = if (radioGroup.checkedRadioButtonId == R.id.rb_pemasukan) "Debet" else "Kredit"
 
-                        val nominal = nominalStr.toLong()
-                        positiveButton.isEnabled = false // Disable button to prevent double click
-
-                        pembukuanViewModel.tambahTransaksi(keterangan, nominal, jenis, dialogCalendar.time) { isSuccess ->
-                            if (isSuccess) {
-                                Toast.makeText(context, "Transaksi berhasil disimpan", Toast.LENGTH_SHORT).show()
-                                dismiss()
-                            } else {
-                                Toast.makeText(context, "Gagal menyimpan transaksi", Toast.LENGTH_SHORT).show()
-                                positiveButton.isEnabled = true // Re-enable on failure
-                            }
-                        }
-                    }
+                if (keterangan.isEmpty() || nominalStr.isEmpty()) {
+                    Toast.makeText(context, "Keterangan dan Nominal tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
                 }
-                show()
+
+                val nominal = nominalStr.toLong()
+                positiveButton.isEnabled = false
+
+                onSave(keterangan, nominal, jenis, dialogCalendar.time)
+                dialog.dismiss()
             }
+        }
+        dialog.show()
+    }
+
+    private fun handleFormSubmission(isSuccess: Boolean, successMsg: String, errorMsg: String) {
+        if (isSuccess) {
+            Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {

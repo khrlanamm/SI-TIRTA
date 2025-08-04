@@ -33,18 +33,11 @@ class PembukuanViewModel : ViewModel() {
     private val _saldoAkhir = MutableLiveData<Long>()
     val saldoAkhir: LiveData<Long> get() = _saldoAkhir
 
-    /**
-     * Mengambil data transaksi dari Firestore untuk bulan dan tahun tertentu.
-     */
     fun fetchTransaksi(year: Int, month: Int) {
         _isLoading.value = true
-
         val cal = Calendar.getInstance()
-        // Set ke awal bulan
         cal.set(year, month, 1, 0, 0, 0)
         val startDate = cal.time
-
-        // Set ke awal bulan berikutnya untuk batas akhir query
         cal.add(Calendar.MONTH, 1)
         val endDate = cal.time
 
@@ -55,7 +48,6 @@ class PembukuanViewModel : ViewModel() {
             .addSnapshotListener { snapshots, error ->
                 _isLoading.value = false
                 if (error != null) {
-                    // Handle error, mungkin dengan LiveData terpisah untuk error
                     _transaksiList.value = emptyList()
                     return@addSnapshotListener
                 }
@@ -68,9 +60,6 @@ class PembukuanViewModel : ViewModel() {
             }
     }
 
-    /**
-     * Menambahkan transaksi baru ke Firestore.
-     */
     fun tambahTransaksi(keterangan: String, nominal: Long, jenis: String, tanggal: Date, onResult: (Boolean) -> Unit) {
         val transaksiBaru = Transaksi(
             keterangan = keterangan,
@@ -78,14 +67,31 @@ class PembukuanViewModel : ViewModel() {
             jenis = jenis,
             tanggal = Timestamp(tanggal)
         )
-
         transaksiCollection.add(transaksiBaru)
-            .addOnSuccessListener {
-                onResult(true) // Sukses
-            }
-            .addOnFailureListener {
-                onResult(false) // Gagal
-            }
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    fun updateTransaksi(transaksiId: String, keterangan: String, nominal: Long, jenis: String, tanggal: Date, onResult: (Boolean) -> Unit) {
+        val updatedData = mapOf(
+            "keterangan" to keterangan,
+            "nominal" to nominal,
+            "jenis" to jenis,
+            "tanggal" to Timestamp(tanggal)
+        )
+
+        transaksiCollection.document(transaksiId).update(updatedData)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    /**
+     * Menghapus transaksi dari Firestore berdasarkan ID-nya.
+     */
+    fun deleteTransaksi(transaksiId: String, onResult: (Boolean) -> Unit) {
+        transaksiCollection.document(transaksiId).delete()
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
     }
 
     private fun calculateTotals(list: List<Transaksi>) {

@@ -15,6 +15,18 @@ import java.util.Locale
 
 class PembukuanAdapter : ListAdapter<Transaksi, PembukuanAdapter.TransaksiViewHolder>(TransaksiDiffCallback()) {
 
+    // Interface untuk menangani klik
+    private var listener: OnItemClickListener? = null
+
+    // Fun interface agar bisa diimplementasikan dengan lambda
+    fun interface OnItemClickListener {
+        fun onItemClick(transaksi: Transaksi)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransaksiViewHolder {
         val binding = ItemTransaksiBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return TransaksiViewHolder(binding)
@@ -42,6 +54,11 @@ class PembukuanAdapter : ListAdapter<Transaksi, PembukuanAdapter.TransaksiViewHo
 
             val colorRes = if (transaksi.jenis == "Debit") R.color.green_money else R.color.red_money
             binding.tvNominal.setTextColor(ContextCompat.getColor(binding.root.context, colorRes))
+
+            // Set listener di sini
+            itemView.setOnClickListener {
+                listener?.onItemClick(transaksi)
+            }
         }
     }
 
