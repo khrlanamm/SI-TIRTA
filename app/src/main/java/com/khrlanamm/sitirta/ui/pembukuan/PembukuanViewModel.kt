@@ -15,15 +15,12 @@ class PembukuanViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val transaksiCollection = db.collection("transaksi")
 
-    // LiveData untuk daftar transaksi yang akan ditampilkan
     private val _transaksiList = MutableLiveData<List<Transaksi>>()
     val transaksiList: LiveData<List<Transaksi>> get() = _transaksiList
 
-    // LiveData untuk status loading
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    // LiveData untuk hasil kalkulasi
     private val _totalPemasukan = MutableLiveData<Long>()
     val totalPemasukan: LiveData<Long> get() = _totalPemasukan
 
@@ -85,9 +82,6 @@ class PembukuanViewModel : ViewModel() {
             .addOnFailureListener { onResult(false) }
     }
 
-    /**
-     * Menghapus transaksi dari Firestore berdasarkan ID-nya.
-     */
     fun deleteTransaksi(transaksiId: String, onResult: (Boolean) -> Unit) {
         transaksiCollection.document(transaksiId).delete()
             .addOnSuccessListener { onResult(true) }
@@ -95,6 +89,7 @@ class PembukuanViewModel : ViewModel() {
     }
 
     private fun calculateTotals(list: List<Transaksi>) {
+        // PERBAIKAN: Menggunakan "Debit"
         val pemasukan = list.filter { it.jenis == "Debit" }.sumOf { it.nominal ?: 0L }
         val pengeluaran = list.filter { it.jenis == "Kredit" }.sumOf { it.nominal ?: 0L }
 

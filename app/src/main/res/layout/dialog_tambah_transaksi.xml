@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Pemasukan (Debet)"
+            android:text="Pemasukan (Debit)"
             android:checked="true"/>
 
         <RadioButton
@@ -78,7 +78,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Tanggal: 20-07-2025"
+            android:text="Tanggal: 04 Agustus 2025"
             android:textSize="16sp"/>
 
         <Button

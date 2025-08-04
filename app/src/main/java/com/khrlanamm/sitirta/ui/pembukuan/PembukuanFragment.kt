@@ -82,14 +82,13 @@ class PembukuanFragment : Fragment() {
     }
 
     private fun showItemOptionsDialog(transaksi: Transaksi) {
-        // Tambahkan opsi "Hapus Transaksi"
         val options = arrayOf("Edit Transaksi", "Hapus Transaksi")
         AlertDialog.Builder(requireContext())
             .setTitle("Pilih Aksi")
             .setItems(options) { dialog, which ->
                 when (which) {
                     0 -> showEditTransaksiDialog(transaksi)
-                    1 -> showDeleteConfirmationDialog(transaksi) // Panggil dialog konfirmasi hapus
+                    1 -> showDeleteConfirmationDialog(transaksi)
                 }
             }
             .setNegativeButton("Batal", null)
@@ -221,7 +220,8 @@ class PembukuanFragment : Fragment() {
         if (transaksi != null) {
             etKeterangan.setText(transaksi.keterangan)
             etNominal.setText(transaksi.nominal?.toString() ?: "0")
-            if (transaksi.jenis == "Debet") {
+            // PERBAIKAN: Menggunakan "Debit"
+            if (transaksi.jenis == "Debit") {
                 rbPemasukan.isChecked = true
             } else {
                 rbPengeluaran.isChecked = true
@@ -255,7 +255,8 @@ class PembukuanFragment : Fragment() {
             positiveButton.setOnClickListener {
                 val keterangan = etKeterangan.text.toString().trim()
                 val nominalStr = etNominal.text.toString().trim()
-                val jenis = if (radioGroup.checkedRadioButtonId == R.id.rb_pemasukan) "Debet" else "Kredit"
+                // PERBAIKAN: Menggunakan "Debit"
+                val jenis = if (radioGroup.checkedRadioButtonId == R.id.rb_pemasukan) "Debit" else "Kredit"
 
                 if (keterangan.isEmpty() || nominalStr.isEmpty()) {
                     Toast.makeText(context, "Keterangan dan Nominal tidak boleh kosong", Toast.LENGTH_SHORT).show()
