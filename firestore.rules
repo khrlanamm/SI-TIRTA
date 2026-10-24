@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Deploy: firebase deploy --only firestore:rules
+// Pendaftaran akun baru dimatikan di Firebase Authentication, jadi hanya
+// petugas yang akunnya sudah ada yang bisa masuk.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /pelanggan/{id} {
+      allow read, write: if signedIn();
+    }
+
+    match /penanggung_jawab/{id} {
+      allow read, write: if signedIn();
+    }
+
+    match /transaksi/{id} {
+      allow read, write: if signedIn();
+    }
+
+    // Daftar bendahara dikelola lewat Firebase console. Pengguna hanya boleh
+    // membaca dokumen miliknya, cukup untuk query whereEqualTo("email", emailSaya).
+    match /bendahara/{id} {
+      allow read: if signedIn() && resource.data.email == request.auth.token.email;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
