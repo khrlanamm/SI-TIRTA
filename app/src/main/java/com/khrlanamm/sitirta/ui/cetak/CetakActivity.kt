@@ -24,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -34,8 +33,6 @@ class CetakActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_PELANGGAN = "extra_pelanggan"
-        const val HARGA_PER_METER = 2500
-        const val IURAN_BULANAN = 5000
     }
 
     private lateinit var binding: ActivityCetakBinding
@@ -252,7 +249,7 @@ class CetakActivity : AppCompatActivity() {
         val meterLalu = meterLaluStr.toLong()
         val meterIni = meterIniStr.toLong()
 
-        if (meterIni < meterLalu) {
+        if (!meterValid(meterLalu, meterIni)) {
             Toast.makeText(this, "Meter bulan ini tidak boleh lebih kecil dari bulan lalu", Toast.LENGTH_SHORT).show()
             return
         }
@@ -262,9 +259,7 @@ class CetakActivity : AppCompatActivity() {
     }
 
     private fun calculateAndDisplayBill(meterLalu: Long, meterIni: Long) {
-        val selisih = meterIni - meterLalu
-        val tagihanAir = selisih * HARGA_PER_METER
-        val totalTagihan = tagihanAir + IURAN_BULANAN
+        val (selisih, tagihanAir, totalTagihan) = hitungTagihan(meterLalu, meterIni)
 
         binding.tvMeterDitagihValue.text = "$selisih m³"
         binding.tvTotalTagihanAirValue.text = formatRupiah(tagihanAir.toDouble())
@@ -363,9 +358,7 @@ class CetakActivity : AppCompatActivity() {
 
         val meterLalu = binding.etMeterLaluValue.text.toString().toLongOrNull() ?: 0
         val meterIni = binding.etMeterIniValue.text.toString().toLongOrNull() ?: 0
-        val selisih = meterIni - meterLalu
-        val tagihanAir = selisih * HARGA_PER_METER
-        val totalTagihan = tagihanAir + IURAN_BULANAN
+        val (selisih, tagihanAir, totalTagihan) = hitungTagihan(meterLalu, meterIni)
 
         val logo = "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(
             EscPosPrinter(selectedPrinter, 203, 48f, 32),
@@ -412,13 +405,6 @@ class CetakActivity : AppCompatActivity() {
         val namaBulanLalu = monthFormat.format(calendar.time)
 
         return Pair(namaBulanLalu, namaBulanIni)
-    }
-
-    private fun formatRupiah(number: Double): String {
-        val localeID = Locale("in", "ID")
-        val formatRupiah = NumberFormat.getCurrencyInstance(localeID)
-        formatRupiah.maximumFractionDigits = 0
-        return formatRupiah.format(number)
     }
 
     private fun updateStatusButtons(statusTagihan: String?, statusBayar: String?) {

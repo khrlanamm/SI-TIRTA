@@ -115,10 +115,9 @@ class PembukuanViewModel : ViewModel() {
     }
 
     private fun calculateTotals(list: List<Transaksi>) {
-        val pemasukan = list.filter { it.jenis == "Debit" }.sumOf { it.nominal ?: 0L }
-        val pengeluaran = list.filter { it.jenis == "Kredit" }.sumOf { it.nominal ?: 0L }
-        _totalPemasukan.value = pemasukan
-        _totalPengeluaran.value = pengeluaran
-        _saldoAkhir.value = pemasukan - pengeluaran
+        val total = hitungTotalKas(list)
+        _totalPemasukan.value = total.pemasukan
+        _totalPengeluaran.value = total.pengeluaran
+        _saldoAkhir.value = total.saldoAkhir
     }
 }

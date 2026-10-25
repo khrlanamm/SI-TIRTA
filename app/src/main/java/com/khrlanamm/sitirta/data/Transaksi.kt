@@ -9,7 +9,7 @@ data class Transaksi(
     val tanggal: Timestamp? = null,
     val keterangan: String? = null,
     val nominal: Long? = 0, // Gunakan Long untuk nominal uang
-    val jenis: String? = null // "Debet" atau "Kredit"
+    val jenis: String? = null // "Debit" atau "Kredit"
 ) {
     constructor() : this(null, null, null, 0, null)
 }

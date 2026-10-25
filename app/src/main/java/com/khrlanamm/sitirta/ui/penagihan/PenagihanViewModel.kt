@@ -73,65 +73,15 @@ class PenagihanViewModel : ViewModel() {
     }
 
     private fun applyFilters() {
-        var filteredList = _originalPelangganList
-
-        // 1. Filter based on Person in Charge (PJ)
-        // If currentPjPrefix is null, this filter is skipped (showing all)
-        currentPjPrefix?.let { prefix ->
-            if (prefix.isNotEmpty()) { // Ensure prefix is not empty
-                filteredList = filteredList.filter {
-                    it.id_pelanggan?.startsWith(prefix, ignoreCase = true) == true
-                }
-            }
-        }
-
-        // 2. Filter based on Name Search
-        if (currentSearchQuery.isNotEmpty()) {
-            filteredList = filteredList.filter {
-                it.nama?.contains(currentSearchQuery, ignoreCase = true) == true
-            }
-        }
-
-        // 3. Filter based on Payment Status
-        filteredList = filteredList.filter { pelanggan ->
-            currentPaymentStatusFilter.any { status ->
-                pelanggan.status_pembayaran.equals(status, ignoreCase = true)
-            }
-        }
-
-        val sortedList = filteredList.sortedWith(
-            compareBy(
-                { it.status_penagihan != "Belum Ditagih" }, // false (Belum Ditagih) comes first
-                { it.nama } // Then sort by name
-            )
+        val sortedList = filterPelanggan(
+            _originalPelangganList,
+            currentPjPrefix,
+            currentSearchQuery,
+            currentPaymentStatusFilter
         )
 
         _pelangganList.value = sortedList
-        calculateStatistics(sortedList)
-    }
-
-
-    private fun calculateStatistics(list: List<Pelanggan>) {
-        if (list.isEmpty()) {
-            _statistik.value = mapOf(
-                "penagihan" to Pair(0, 0),
-                "pembayaran" to Pair(0, 0)
-            )
-            return
-        }
-
-        val total = list.size
-        val sudahDitagih = list.count { it.status_penagihan.equals("Sudah Ditagih", ignoreCase = true) }
-        val sudahDibayar = list.count { it.status_pembayaran.equals("Sudah Bayar", ignoreCase = true) }
-
-        val belumDitagih = total - sudahDitagih
-        val belumDibayar = total - sudahDibayar
-
-        val stats = mapOf(
-            "penagihan" to Pair(sudahDitagih, belumDitagih),
-            "pembayaran" to Pair(sudahDibayar, belumDibayar)
-        )
-        _statistik.value = stats
+        _statistik.value = hitungStatistik(sortedList)
     }
 
     fun setPjFilter(pjName: String?) {
