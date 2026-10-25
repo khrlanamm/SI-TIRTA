@@ -1,16 +1,26 @@
 # SI-TIRTA
 
+[![CI](https://github.com/khrlanamm/SI-TIRTA/actions/workflows/ci.yml/badge.svg)](https://github.com/khrlanamm/SI-TIRTA/actions/workflows/ci.yml)
+
 ![SI-TIRTA feature graphic](https://raw.githubusercontent.com/khrlanamm/khrlanamm/main/assets/projects/si-tirta.webp)
 
 Water billing and bookkeeping app for a village water utility (KPSPAM) in West Sumatra. Used for the June 2025 payments and taught to 10 utility officers.
 
+## Screenshots
+
+Customer names and IDs are blurred.
+
+| Sign-in | Billing | Bill detail | Bookkeeping |
+|---|---|---|---|
+| <img src="docs/images/sign-in.webp" alt="Sign-in screen with the SI-TIRTA KPSPAM logo and the Google sign-in button" width="200"> | <img src="docs/images/billing.webp" alt="Billing screen with billing and payment statistics and the customer list" width="200"> | <img src="docs/images/bill-detail.webp" alt="Bill detail with meter readings, price per cubic meter, and monthly fee" width="200"> | <img src="docs/images/bookkeeping-locked.webp" alt="Bookkeeping screen refusing access to a user who is not a treasurer" width="200"> |
+
 ## Features
 
-- **Dashboard**: customers grouped by the officer in charge (penanggung jawab), with billing and payment progress for the month.
-- **Penagihan (billing)**: search customers, filter by officer and status, and mark bills as billed (Sudah Ditagih) or paid (Sudah Bayar).
-- **Cetak (print)**: print bills and receipts on a Bluetooth ESC/POS thermal printer.
-- **Pembukuan (bookkeeping)**: debit and credit entries per month. Only treasurers listed in the `bendahara` collection can open it.
-- Google sign-in with Credential Manager.
+- **Dashboard**: edit the officers in charge (penanggung jawab), add customers, and run the monthly reset, which starts a new billing month once every customer has been billed.
+- **Penagihan (billing)**: billing and payment statistics, search customers, filter by officer and status, and mark bills as billed (Sudah Ditagih) or paid (Sudah Bayar). Customers not yet billed come first.
+- **Cetak (print)**: enter this month's meter reading, compute the bill (usage x Rp2.500 per m³ + Rp5.000 monthly fee), and print it on a Bluetooth ESC/POS thermal printer.
+- **Pembukuan (bookkeeping)**: debit and credit entries per month with income, spending, and balance. Only treasurers listed in the `bendahara` collection can open it.
+- Google sign-in.
 
 ## Data and access
 
@@ -25,8 +35,11 @@ Kotlin, XML layouts, Navigation component, ViewModel and LiveData, Firebase Auth
 ## Build
 
 ```sh
+./gradlew :app:testDebugUnitTest   # unit tests
 ./gradlew :app:assembleDebug
 ```
+
+Unit tests cover the bill calculation, the customer filter and statistics, and the bookkeeping totals. CI runs them on every push.
 
 Release builds are signed in Android Studio with the upload key, which is kept outside the repo.
 
