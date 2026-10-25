@@ -35,3 +35,7 @@ Deploy the security rules with the Firebase CLI:
 ```sh
 firebase deploy --only firestore:rules
 ```
+
+## License
+
+All rights reserved. The source code is public for reference only. See [LICENSE](LICENSE).
